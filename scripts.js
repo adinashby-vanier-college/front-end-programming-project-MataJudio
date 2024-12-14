@@ -1,5 +1,12 @@
 const grid = document.getElementById("tetris-grid"); //global variable
-/**onst tetrisBlocks = {
+const gridOfFilledSquares = []; //global variable   
+makeGrid();
+
+
+
+
+
+/**const tetrisBlocks = {
     arrayOfFunctions: [
         function(){
             grid.querySelector("#x-2y-15").style = "background-color: yellow";
@@ -30,18 +37,14 @@ function play(){
     /**The subsequent code between the comments will be strictly for the play function */
     removeStartMenu();
     
-    let occupiedSquares = {
-        grid : [],
-        fits: function(arrayOfCoordinates){
-
-        }
-
-    };
+    
 
 
 
 
-    //
+
+
+    
     let coordinates = {
         y: 2,
         x: 4,
@@ -53,9 +56,18 @@ function play(){
         updateY: function(y){
             
         },
-        updateX: function(x){},
-        getY: function(){},
-        getX: function(){}
+        updateX: function(x){
+            this.x = x;
+        },
+        updateY: function(y){
+            this.y = y;
+        },
+        getY: function(){
+            return this.y;
+        },
+        getX: function(){
+            return this.x;
+        }
     };
     grid.addEventListener("mouseover", e => {
         moveHorizontal(e);       
@@ -77,7 +89,7 @@ function play(){
 
            //MOVES THE SHAPE COORDINATES DOWN
         
-        coordinates.updateY();
+        coordinates.updateY((coordinates.getY())+1);
         
         grid.querySelectorAll(coordinates.blockX1Y1()+", "+coordinates.blockX2Y1()+", "+coordinates.blockX1Y2()+", "+coordinates.blockX2Y2()).forEach(element => {        
             element.style="background-color: yellow; border: 1px solid grey;";
@@ -184,11 +196,22 @@ function makeGrid(){
         }
         
     }
+
+    let square = grid.querySelector(".square");
+
+    while(square != null){
+        gridOfFilledSquares.push([]);
+        let counter = 1;
+        while(counter <= 10){
+            gridOfFilledSquares[Number(square.id.slice(5,7))-1].push(square);
+            square = square.nextSibling;
+            counter++;  
+        }
+}
+
     
     
 }
-
-makeGrid();
 startMenu();
 
 
