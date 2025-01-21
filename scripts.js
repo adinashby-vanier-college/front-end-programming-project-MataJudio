@@ -1,36 +1,69 @@
 const grid = document.getElementById("tetris-grid"); //global variable
-const gridOfFilledSquares = []; //global variable   
+
+let gridOfFilledSquares = []; //global variable   
+
 makeGrid();
 
 
 
-
-
-/**const tetrisBlocks = {
-    arrayOfFunctions: [
-        function(){
-            grid.querySelector("#x-2y-15").style = "background-color: yellow";
+const tetrisBlock = {
+    coordinates: {
+        
+        y: 2,
+        x: 2,
+        updateX: function(x){
             
-        }, function(){
-            
-        }, function(){
-            
-        }, function(){
-            
-        }, function(){
-            
-        }, function(){
-            
-        }, function(){
-            
+            this.x = x;
         },
+        updateY: function(y){
+            
+            this.y = y;
+        },
+        getY: function(){
+            return this.y;
+        },
+        getX: function(){
+            return this.x;
+        }
+    },
+    someFuckShit: {
+        
+        something: 2
+    },
+    arrayOfShapes: [
+        function() {//A square tetris piece is made here. 
+            
+            this.coordinates.updateY(2);//initial starting Y
+            this.coordinates.updateX(4);//initial starting X
+            this.coordinates.shape.blockX1Y1= "#x-"+this.x+"y-"+(this.y-1);
+            this.coordinates.shape.blockX2Y1= "#x-"+(this.x+1)+"y-"+(this.y-1);
+            this.coordinates.shape.blockX1Y2= "#x-"+this.x+"y-"+this.y;
+            this.coordinates.shape.blockX2Y2= "#x-"+(this.x+1)+"y-"+this.y;
+        }, 
+        function() {//An 'I' tetris piece is made here
+            this.coordinates.updateX(4); //initial starting Y
+            this.coordinates.updateY(4); //initial starting X
+            this.coordinates.shape.blockX1Y1= "#x-"+this.x+"y-"+(this.y-3);
+            this.coordinates.shape.blockX2Y1= "#x-"+(this.x)+"y-"+(this.y-2);
+            this.coordinates.shape.blockX1Y2= "#x-"+this.x+"y-"+this.y-1;
+            this.coordinates.shape.blockX2Y2= "#x-"+(this.x)+"y-"+this.y;
+
+        }
     ],
     generateRandomBlock: function(){
-        return this.arrayOfFunctions[Math.floor(Math.random()*7)];
-    }       
-    
+        console.log(this.someFuckShit.something);
+        this.arrayOfShapes[0/*Math.floor(Math.random()*6)*/]();
+        
+        let concat = ""; 
+        Object.values(this.coordinates.shape).forEach((value)=>{
+            concat += value+", ";
+        });
+        grid.querySelectorAll(concat.substring(0, concat.length-2)).forEach(element => {        
+            element.style="background-color: yellow; border: 1px solid grey;";
+        });//DRAW ALL SQUARES, initial starting point.
+    }
+
 }
-*/
 
 function play(){
     
@@ -42,33 +75,10 @@ function play(){
 
 
 
-
-
+    tetrisBlock.generateRandomBlock();
     
-    let coordinates = {
-        y: 2,
-        x: 4,
-
-        blockX1Y1: function(){return "#x-"+this.x+"y-"+(this.y-1)}, 
-        blockX2Y1: function(){return "#x-"+(this.x+1)+"y-"+(this.y-1)},
-        blockX1Y2: function(){return "#x-"+this.x+"y-"+this.y},
-        blockX2Y2: function(){return "#x-"+(this.x+1)+"y-"+this.y},
-        updateY: function(y){
-            
-        },
-        updateX: function(x){
-            this.x = x;
-        },
-        updateY: function(y){
-            this.y = y;
-        },
-        getY: function(){
-            return this.y;
-        },
-        getX: function(){
-            return this.x;
-        }
-    };
+    
+    
     grid.addEventListener("mouseover", e => {
         moveHorizontal(e);       
     });
@@ -78,9 +88,7 @@ function play(){
         console.log(e);
     });
 
-    grid.querySelectorAll(coordinates.blockX1Y1()+", "+coordinates.blockX2Y1()+", "+coordinates.blockX1Y2()+", "+coordinates.blockX2Y2()).forEach(element => {        
-        element.style="background-color: yellow; border: 1px solid grey;";
-    });//DRAW ALL FOUR SQUARES, initial starting point.
+    
 
     function moveDown(){
         grid.querySelectorAll(coordinates.blockX1Y1()+", "+coordinates.blockX2Y1()+", "+coordinates.blockX1Y2()+", "+coordinates.blockX2Y2()).forEach(element => {        
@@ -145,9 +153,9 @@ function addPlayButton(){
     let playButton = document.createElement("button");
     playButton.setAttribute("type","button");
     playButton.setAttribute("name","button");
-    playButton.addEventListener("click", e => {
-        e.stopPropagation();    
-        play();
+    playButton.addEventListener("click",  function(e) {
+            e.stopPropagation();    
+            play(); 
         }
     );
     playButton.setAttribute("id","play-button");
@@ -200,20 +208,15 @@ function makeGrid(){
     let square = grid.querySelector(".square");
 
     while(square != null){
-        gridOfFilledSquares.push([]);
         let counter = 1;
         while(counter <= 10){
-            gridOfFilledSquares[Number(square.id.slice(5,7))-1].push(square);
+            console.log(square);
+            gridOfFilledSquares.push(Number(square.id.slice(5,7))-1,square);
             square = square.nextSibling;
             counter++;  
         }
-}
-
-    
-    
+    }
+ 
 }
 startMenu();
-
-
-
 
