@@ -1,23 +1,24 @@
-const grid = document.getElementById("tetris-grid"); //global variable
-
-let gridOfFilledSquares = []; //global variable   
+var grid = document.getElementById("tetris-grid"); //global variable
+var intervalID;
+var gridOfFilledSquares = []; //global variable   
 
 makeGrid();
 
 
 
-const tetrisBlock = {
+var tetrisBlock = {  //global variable I want this to be available in every part of the program
     coordinates: {
-        
-        y: 2,
-        x: 2,
-        updateX: function(x){
+        shape:{},
+        y: 0,
+        x: 0,
+        updateX: function(a){
             
-            this.x = x;
+            this.x = a;
         },
-        updateY: function(y){
+        updateY: function(b){
+            this.y = b;
+                    
             
-            this.y = y;
         },
         getY: function(){
             return this.y;
@@ -26,41 +27,114 @@ const tetrisBlock = {
             return this.x;
         }
     },
-    someFuckShit: {
+    someStuff: {
         
         something: 2
     },
     arrayOfShapes: [
         function() {//A square tetris piece is made here. 
             
-            this.coordinates.updateY(2);//initial starting Y
-            this.coordinates.updateX(4);//initial starting X
-            this.coordinates.shape.blockX1Y1= "#x-"+this.x+"y-"+(this.y-1);
-            this.coordinates.shape.blockX2Y1= "#x-"+(this.x+1)+"y-"+(this.y-1);
-            this.coordinates.shape.blockX1Y2= "#x-"+this.x+"y-"+this.y;
-            this.coordinates.shape.blockX2Y2= "#x-"+(this.x+1)+"y-"+this.y;
+            let shapeCoordinates = this.coordinates.shape;
+            this.coordinates.y = 2;//initial starting Y
+            this.coordinates.x = 4;//initial starting X
+            shapeCoordinates.blockX1Y1= function() {return "#x-"+this.coordinates.x+"y-"+(this.coordinates.y-1)};
+            shapeCoordinates.blockX2Y1= function() {return "#x-"+(this.coordinates.x+1)+"y-"+(this.coordinates.y-1)};
+            shapeCoordinates.blockX1Y2= function() {return "#x-"+this.coordinates.x+"y-"+this.coordinates.y};
+            shapeCoordinates.blockX2Y2= function() {return "#x-"+(this.coordinates.x+1)+"y-"+this.coordinates.y};
         }, 
         function() {//An 'I' tetris piece is made here
-            this.coordinates.updateX(4); //initial starting Y
-            this.coordinates.updateY(4); //initial starting X
-            this.coordinates.shape.blockX1Y1= "#x-"+this.x+"y-"+(this.y-3);
-            this.coordinates.shape.blockX2Y1= "#x-"+(this.x)+"y-"+(this.y-2);
-            this.coordinates.shape.blockX1Y2= "#x-"+this.x+"y-"+this.y-1;
-            this.coordinates.shape.blockX2Y2= "#x-"+(this.x)+"y-"+this.y;
+            let xy = this.coordinates;
+            let shapeCoordinates = this.coordinates.shape;
+            xy.x= 4; //initial starting Y
+            xy.Y= 4; //initial starting X
+            shapeCoordinates.blockX1Y1= "#x-"+xy.x+"y-"+(xy.y-3);
+            shapeCoordinates.blockX2Y1= "#x-"+(xy.x)+"y-"+(xy.y-2);
+            shapeCoordinates.blockX1Y2= "#x-"+xy.x+"y-"+xy.y-1;
+            shapeCoordinates.blockX2Y2= "#x-"+(xy.x)+"y-"+xy.y;
 
         }
     ],
     generateRandomBlock: function(){
-        console.log(this.someFuckShit.something);
-        this.arrayOfShapes[0/*Math.floor(Math.random()*6)*/]();
+        const areaListener = new AbortController();
+        const areaListener2 = new AbortController();
+        grid.addEventListener("mouseover", e => {
+            
+            this.moveHorizontal(e);       
+    },{signal: areaListener.signal});
         
-        let concat = ""; 
-        Object.values(this.coordinates.shape).forEach((value)=>{
-            concat += value+", ";
-        });
-        grid.querySelectorAll(concat.substring(0, concat.length-2)).forEach(element => {        
+        grid.addEventListener("click", e =>{
+            e.stopPropagation();
+            this.bringDownShape(e);
+            
+        },{signal: areaListener2.signal});
+        
+        this.arrayOfShapes[0/*Math.floor(Math.random()*6)*/].call(this); //I have to use the call method here because the function
+                                                                                //is being invoked as standalone function (i.e, not attached to tetrisBlock)
+        /*grid.querySelectorAll(Object.values(this.coordinates.shape).toString()).forEach(element => {        
             element.style="background-color: yellow; border: 1px solid grey;";
-        });//DRAW ALL SQUARES, initial starting point.
+        });*/ //DRAW ALL SQUARES, initial starting point.
+        for(const object in this.coordinates.shape){
+            grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: yellow; border: 1px solid grey;";
+        }
+        
+        intervalID = setInterval(()=> this.moveDown.call(this),1000);
+        //call is used here again because of the context in which moveDown is called
+        //After drawning, periodically move the shape down.                 
+    },
+    moveDown: function (){
+        let shapeCoordinates = this.coordinates.shape;
+        console.log(Object.values(this.coordinates.shape));
+        
+        for(const object in this.coordinates.shape){//ERASES all the squares
+            grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: red; border: 1px solid white;";
+        }
+        
+
+           //MOVES THE SHAPE COORDINATES DOWN
+        console.log(this.coordinates.y);
+        this.coordinates.updateY((this.coordinates.y)+1);
+        
+        
+        for(const object in this.coordinates.shape){//Draws the squares one block down
+            grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: yellow; border: 1px solid grey;";
+        }
+        if (this.coordinates.y >= 20){
+            
+            areaListener.abort();
+            clearInterval(intervalID);
+            //what should happen is I should reset the this.coordinate.x/y 
+            //if I call generateRandomBlock again without removing event listeners 
+            //they can stack and cause weird errors.
+        }
+        
+    },
+    moveHorizontal: function(e) {
+        
+        for(const object in this.coordinates.shape){
+            grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: red; border: 1px solid white;";
+        };//ERASE THE OBJECT
+
+        let newX = Number(e.target.id.slice(2,3));
+        newX == 9 ? this.coordinates.updateX(8) : this.coordinates.updateX(newX);
+        
+    
+        for(const object in this.coordinates.shape){
+            grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: yellow; border: 1px solid grey;";
+        }//Draw the object again, translated horizontally.
+        
+    },
+    bringDownShape: function(e) {
+        for(const object in this.coordinates.shape){
+            grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: red; border: 1px solid white;";
+        }//ERASE THE ENTIRE TETRIS SHAPE
+    
+           //MOVES THE SHAPE COORDINATES DOWN
+        this.coordinates.updateY(20);
+        for(const object in this.coordinates.shape){
+            grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: yellow; border: 1px solid grey;";
+        }
+        
+        clearInterval(intervalID);
     }
 
 }
@@ -79,61 +153,15 @@ function play(){
     
     
     
-    grid.addEventListener("mouseover", e => {
-        moveHorizontal(e);       
-    });
-    grid.addEventListener("click", e =>{
-        e.stopPropagation();
-        bringDownShape(e);
-        console.log(e);
-    });
+    
 
     
 
-    function moveDown(){
-        grid.querySelectorAll(coordinates.blockX1Y1()+", "+coordinates.blockX2Y1()+", "+coordinates.blockX1Y2()+", "+coordinates.blockX2Y2()).forEach(element => {        
-        element.style="background-color: red; border: 1px solid white;";
-        });//ERASE THE ENTIRE TETRIS SHAPE
-
-           //MOVES THE SHAPE COORDINATES DOWN
-        
-        coordinates.updateY((coordinates.getY())+1);
-        
-        grid.querySelectorAll(coordinates.blockX1Y1()+", "+coordinates.blockX2Y1()+", "+coordinates.blockX1Y2()+", "+coordinates.blockX2Y2()).forEach(element => {        
-            element.style="background-color: yellow; border: 1px solid grey;";
-        });
-        if (coordinates.getY >= 20){
-            clearInterval(intervalID);
-        }
-    }      
-    function moveHorizontal(e){
-        grid.querySelectorAll(coordinates.blockX1Y1()+", "+coordinates.blockX2Y1()+", "+coordinates.blockX1Y2()+", "+coordinates.blockX2Y2()).forEach(element => {        
-            element.style="background-color: red; border: 1px solid white;";
-        });//ERASE THE OBJECT
-
-        let newX = Number(e.target.id.slice(2,3));
-        newX == 9 ? coordinates.updateX(8) : coordinates.updateX(newX);
-        
     
-        grid.querySelectorAll(coordinates.blockX1Y1()+", "+coordinates.blockX2Y1()+", "+coordinates.blockX1Y2()+", "+coordinates.blockX2Y2()).forEach(element => {        
-            element.style="background-color: yellow; border: 1px solid grey;";
-        });
-    }
-    function bringDownShape(e){
-        grid.querySelectorAll(coordinates.blockX1Y1()+", "+coordinates.blockX2Y1()+", "+coordinates.blockX1Y2()+", "+coordinates.blockX2Y2()).forEach(element => {        
-        element.style="background-color: red; border: 1px solid white;";
-        });//ERASE THE ENTIRE TETRIS SHAPE
     
-           //MOVES THE SHAPE COORDINATES DOWN
-        coordinates.updateY(20);
-        grid.querySelectorAll(coordinates.blockX1Y1()+", "+coordinates.blockX2Y1()+", "+coordinates.blockX1Y2()+", "+coordinates.blockX2Y2()).forEach(element => {        
-            element.style="background-color: yellow; border: 1px solid grey;";
-        });
-        
-        clearInterval(intervalID);
-    }
     
-    var intervalID = setInterval(moveDown,1000);
+    
+    
 
 }
 
