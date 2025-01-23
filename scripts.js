@@ -1,7 +1,7 @@
 var grid = document.getElementById("tetris-grid"); //global variable
 var intervalID;
 var gridOfFilledSquares = []; //global variable   
-
+var areaListener = new AbortController();
 makeGrid();
 
 
@@ -55,18 +55,18 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         }
     ],
     generateRandomBlock: function(){
-        const areaListener = new AbortController();
-        const areaListener2 = new AbortController();
+        
+        
         grid.addEventListener("mouseover", e => {
             
             this.moveHorizontal(e);       
-    },{signal: areaListener.signal});
+        },{signal: areaListener.signal});
         
         grid.addEventListener("click", e =>{
-            e.stopPropagation();
+            
             this.bringDownShape(e);
             
-        },{signal: areaListener2.signal});
+        },{signal: areaListener.signal});
         
         this.arrayOfShapes[0/*Math.floor(Math.random()*6)*/].call(this); //I have to use the call method here because the function
                                                                                 //is being invoked as standalone function (i.e, not attached to tetrisBlock)
@@ -82,8 +82,17 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         //After drawning, periodically move the shape down.                 
     },
     moveDown: function (){
+        if (this.coordinates.y >= 19){
+            areaListener.abort();
+            clearInterval(intervalID);
+            gridOfFilledSquares
+            //what should happen is I should reset the this.coordinate.x/y 
+            //if I call generateRandomBlock again without removing event listeners 
+            //they can stack and cause weird errors.
+        }
+        checkGrid.call(tetrisBlock);
         let shapeCoordinates = this.coordinates.shape;
-        console.log(Object.values(this.coordinates.shape));
+        
         
         for(const object in this.coordinates.shape){//ERASES all the squares
             grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: red; border: 1px solid white;";
@@ -98,14 +107,7 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         for(const object in this.coordinates.shape){//Draws the squares one block down
             grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: yellow; border: 1px solid grey;";
         }
-        if (this.coordinates.y >= 20){
-            
-            areaListener.abort();
-            clearInterval(intervalID);
-            //what should happen is I should reset the this.coordinate.x/y 
-            //if I call generateRandomBlock again without removing event listeners 
-            //they can stack and cause weird errors.
-        }
+        
         
     },
     moveHorizontal: function(e) {
@@ -124,6 +126,7 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         
     },
     bringDownShape: function(e) {
+        checkGrid.call(tetrisBlock);
         for(const object in this.coordinates.shape){
             grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: red; border: 1px solid white;";
         }//ERASE THE ENTIRE TETRIS SHAPE
@@ -135,6 +138,7 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         }
         
         clearInterval(intervalID);
+        areaListener.abort();
     }
 
 }
@@ -184,7 +188,7 @@ function addPlayButton(){
     playButton.addEventListener("click",  function(e) {
             e.stopPropagation();    
             play(); 
-        }
+        },{ once: true}
     );
     playButton.setAttribute("id","play-button");
     let span = document.createElement("span");
@@ -234,17 +238,76 @@ function makeGrid(){
     }
 
     let square = grid.querySelector(".square");
-
+    let yCounter =0;
+    let someCounter=0;
     while(square != null){
-        let counter = 1;
-        while(counter <= 10){
-            console.log(square);
-            gridOfFilledSquares.push(Number(square.id.slice(5,7))-1,square);
+        
+        let xCounter = 0;
+        while(xCounter < 10){
+            
+            gridOfFilledSquares.push([xCounter,yCounter,square.id, 0]); //0 for unfilled, 1 for filled
+            console.log(gridOfFilledSquares[someCounter]);
             square = square.nextSibling;
-            counter++;  
+            xCounter++;
+            someCounter++;
         }
+        yCounter++;
     }
+    
  
+}
+//I have a feeling it would be better to implement potentialPlace function first
+//because then I can reuse some of the code. 
+//Don't know yet.
+//
+function potentialPlace(){
+    //this function will run with moveHorizontal but instead of     
+}
+function checkGrid(check){ //this function will check whether the block can be placed (bringDown()) or can 
+//                           move down one square (movedDown()). the parameter passed (boolean) true= bringdown(), false =movedown().
+    var arrayOfCoordinates = [];
+    var xy= [];
+    var x;
+    var y;
+    for(const object in this.coordinates.shape){
+        arrayOfCoordinates.push(this.coordinates.shape[object].call(this));
+    }
+    for(const object of arrayOfCoordinates){
+        x = Number(object.slice(2,3));
+        y = Number(object.slice(5));
+        xy.push([x,y]);
+        xy = xy.sort((a,b)=>{
+            return b[1]-a[1]
+        });
+
+
+    }
+    for(const object in xy){ 
+            //coordinate in this.coordinates.shape is function it's an object with only function as properties
+            //                                                      coordinate will give me a string, but I have to turn it into numbers
+            
+            var filledSquare;
+            //two contingencies: movedown() calls this function,
+            //                    bringdown() calls this function
+            
+            //in hindsight, I could have used a cartesian system. This is one is not efficient.
+            filledSquare = gridOfFilledSquares.filter((arr)=>{
+                arr[0] === x; //checking to see if the square is on the same x value
+            }).filter((arr)=>{
+                arr[3] === 1 ; //checking to see if the square is filled in or not
+            }).sort()[0];// gives me the top-most filled-in square closest to the tetris piece
+            if(filledSquare.length === 0){
+                return;
+            }
+            gridOfFilledSquares[];
+            this.coordinates.y = gridOfFilledSquares.filter((arr)=>{ //to get back the square right above the filled-in square
+            return (arr[1] === filledSquare[1]+1 && arr[0] === filledSquare[0]); 
+            })[2]; //now we change the y value of the tetris piece for one of it's square/blocks
+
+            
+
+        }
+
 }
 startMenu();
 
