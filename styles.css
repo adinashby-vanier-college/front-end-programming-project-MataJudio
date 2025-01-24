@@ -118,6 +118,7 @@ h2 {
     border: 6px solid #242424;
     box-shadow: 3px 3px 3px 3px #1a350f;
     height: 750px;
+    
 }
 
 h1 {
@@ -145,15 +146,23 @@ h1 {
     background-color: unset;
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: stretch;
     max-width: 311px;
     max-height: 660px;
+    margin:0;
+    padding:0;
+    border: 0;
 }
 .square {
+    
     height: 33px;
     width: 31.1px;
     background-color: red;
-    border: 1px solid white;
-    margin: 0;
+    border-width: 1px;
+    border-color: white;
+    border-style: solid;
+    padding: 0;
     z-index: 0;
 }
 #start-menu-background {

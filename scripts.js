@@ -56,7 +56,11 @@ var tetrisBlock = {  //global variable I want this to be available in every part
     ],
     generateRandomBlock: function(){
         
-        
+        /*for(let i =0; i< 200; i++){
+            grid[i].addEventListener(("mouseover",this.moveHorizontal(e)));
+
+        }*/
+        console.log(grid);
         grid.addEventListener("mouseover", e => {
             
             this.moveHorizontal(e);       
@@ -70,12 +74,8 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         
         this.arrayOfShapes[0/*Math.floor(Math.random()*6)*/].call(this); //I have to use the call method here because the function
                                                                                 //is being invoked as standalone function (i.e, not attached to tetrisBlock)
-        /*grid.querySelectorAll(Object.values(this.coordinates.shape).toString()).forEach(element => {        
-            element.style="background-color: yellow; border: 1px solid grey;";
-        });*/ //DRAW ALL SQUARES, initial starting point.
-        for(const object in this.coordinates.shape){
-            grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: yellow; border: 1px solid grey;";
-        }
+        //DRAW ALL SQUARES, initial starting point.
+        
         
         intervalID = setInterval(()=> this.moveDown.call(this),1000);
         //call is used here again because of the context in which moveDown is called
@@ -85,13 +85,12 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         if (this.coordinates.y >= 19){
             areaListener.abort();
             clearInterval(intervalID);
-            gridOfFilledSquares
+            
             //what should happen is I should reset the this.coordinate.x/y 
             //if I call generateRandomBlock again without removing event listeners 
             //they can stack and cause weird errors.
         }
-        checkGrid.call(tetrisBlock);
-        let shapeCoordinates = this.coordinates.shape;
+        checkGrid.call(tetrisBlock, this.moveDown);
         
         
         for(const object in this.coordinates.shape){//ERASES all the squares
@@ -100,7 +99,7 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         
 
            //MOVES THE SHAPE COORDINATES DOWN
-        console.log(this.coordinates.y);
+        
         this.coordinates.updateY((this.coordinates.y)+1);
         
         
@@ -126,16 +125,20 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         
     },
     bringDownShape: function(e) {
-        checkGrid.call(tetrisBlock);
+        
+        
         for(const object in this.coordinates.shape){
             grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: red; border: 1px solid white;";
         }//ERASE THE ENTIRE TETRIS SHAPE
     
-           //MOVES THE SHAPE COORDINATES DOWN
-        this.coordinates.updateY(20);
+        //MOVES THE SHAPE COORDINATES DOWN
         for(const object in this.coordinates.shape){
-            grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: yellow; border: 1px solid grey;";
+            checkGrid.call(tetrisBlock, this.bringDownShape);//after checkGrid() is done the coordinates will be updated and it will be safe to draw into the grid
+            let someString = this.coordinates.shape[object].call(tetrisBlock);
+            grid.querySelector(someString).style="background-color: yellow; border: 1px solid grey;";
+            gridOfFilledSquares[((this.coordinates.x)+(this.coordinates.y*10))-10][3] = 1;           
         }
+        
         
         clearInterval(intervalID);
         areaListener.abort();
@@ -230,7 +233,7 @@ function makeGrid(){
     for(let i =1; i<=20; i++){
         for(let j = 0; j<=9; j++){
             let tempDiv = document.createElement("div");
-            tempDiv.setAttribute("class","square ");
+            tempDiv.setAttribute("class","square");
             tempDiv.setAttribute("id","x-"+j+"y-"+i);
             grid.appendChild(tempDiv);
         }
@@ -238,12 +241,12 @@ function makeGrid(){
     }
 
     let square = grid.querySelector(".square");
-    let yCounter =0;
+    let yCounter =1;
     let someCounter=0;
     while(square != null){
         
-        let xCounter = 0;
-        while(xCounter < 10){
+        let xCounter = 1;
+        while(xCounter <= 10){
             
             gridOfFilledSquares.push([xCounter,yCounter,square.id, 0]); //0 for unfilled, 1 for filled
             console.log(gridOfFilledSquares[someCounter]);
@@ -252,6 +255,7 @@ function makeGrid(){
             someCounter++;
         }
         yCounter++;
+        
     }
     
  
@@ -263,12 +267,13 @@ function makeGrid(){
 function potentialPlace(){
     //this function will run with moveHorizontal but instead of     
 }
-function checkGrid(check){ //this function will check whether the block can be placed (bringDown()) or can 
+function checkGrid(callingFunction){ //this function will check whether the block can be placed (bringDown()) or can 
 //                           move down one square (movedDown()). the parameter passed (boolean) true= bringdown(), false =movedown().
     var arrayOfCoordinates = [];
     var xy= [];
     var x;
     var y;
+    
     for(const object in this.coordinates.shape){
         arrayOfCoordinates.push(this.coordinates.shape[object].call(this));
     }
@@ -280,33 +285,56 @@ function checkGrid(check){ //this function will check whether the block can be p
             return b[1]-a[1]
         });
 
-
     }
-    for(const object in xy){ 
-            //coordinate in this.coordinates.shape is function it's an object with only function as properties
-            //                                                      coordinate will give me a string, but I have to turn it into numbers
-            
-            var filledSquare;
-            //two contingencies: movedown() calls this function,
-            //                    bringdown() calls this function
-            
-            //in hindsight, I could have used a cartesian system. This is one is not efficient.
-            filledSquare = gridOfFilledSquares.filter((arr)=>{
-                arr[0] === x; //checking to see if the square is on the same x value
-            }).filter((arr)=>{
-                arr[3] === 1 ; //checking to see if the square is filled in or not
-            }).sort()[0];// gives me the top-most filled-in square closest to the tetris piece
-            if(filledSquare.length === 0){
-                return;
+    //I now have the x-y value in number format 
+    //and I now have the "x-*y-*" format of the coordinates
+    //and I now have an xy array sorted from highest y value to lowest.
+    //this is important to do because the order the redraw the shape 
+    //matters. 
+    if(callingFunction === this.bringDownShape){
+        let youCanDrawNow = new Boolean(false);
+        while(youCanDrawNow === false){
+            for(const object in xy){ 
+                //coordinate in this.coordinates.shape is function it's an object with only function as properties        
+                var filledSquare;
+                //two contingencies: movedown() calls this function,
+                //bringdown() calls this function
+                //in hindsight, I could have used a cartesian system. This is one is not efficient.
+                filledSquare = gridOfFilledSquares.filter((arr)=>{
+                    arr[0] === object[0]; //checking to see if the square is on the same x value
+                }).filter((arr)=>{
+                    arr[3] === 1 ; //checking to see if the square is filled in or not
+                }).sort()[0];// gives me the top-most filled-in square closest to the tetris piece
+                console.log(filledSquare);
+                
+                
+                if(filledSquare === undefined){
+                    object[1] = filledSquare[1];
+                    object[0] = filledSquare[0]-1;
+                    filledSquare[3] = 1;
+                }
+                else{
+                    
+                    let temp = gridOfFilledSquares.filter((arr)=>{ //to get back the square right above the filled-in square
+                    return (arr[1] === filledSquare[1]+1 && arr[0] === filledSquare[0]); 
+                    }); //now we change the y value of the tetris piece for one of it's square/blocks
+                    temp[3] = 1;
+                    object[1] = temp[1];
+                    object[0] = temp[0]-1;
+                    
+
+                }
+                
+                
+                
             }
-            gridOfFilledSquares[];
-            this.coordinates.y = gridOfFilledSquares.filter((arr)=>{ //to get back the square right above the filled-in square
-            return (arr[1] === filledSquare[1]+1 && arr[0] === filledSquare[0]); 
-            })[2]; //now we change the y value of the tetris piece for one of it's square/blocks
-
-            
-
         }
+    }
+    else if(callingFunction === this.moveDown) {
+        var  filledSquare = gridOfFilledSquares[]     
+        
+    }
+    
 
 }
 startMenu();
