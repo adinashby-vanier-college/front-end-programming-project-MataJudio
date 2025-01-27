@@ -43,14 +43,47 @@ var tetrisBlock = {  //global variable I want this to be available in every part
             shapeCoordinates.blockX2Y2= function() {return "#x-"+(this.coordinates.x+1)+"y-"+this.coordinates.y};
         }, 
         function() {//An 'I' tetris piece is made here
-            let xy = this.coordinates;
+            
             let shapeCoordinates = this.coordinates.shape;
-            xy.x= 4; //initial starting Y
-            xy.Y= 4; //initial starting X
-            shapeCoordinates.blockX1Y1= "#x-"+xy.x+"y-"+(xy.y-3);
-            shapeCoordinates.blockX2Y1= "#x-"+(xy.x)+"y-"+(xy.y-2);
-            shapeCoordinates.blockX1Y2= "#x-"+xy.x+"y-"+xy.y-1;
-            shapeCoordinates.blockX2Y2= "#x-"+(xy.x)+"y-"+xy.y;
+            this.coordinates.y = 4;//initial starting Y
+            this.coordinates.x = 4;//initial starting X
+            shapeCoordinates.blockX1Y1= function() {return "#x-"+this.coordinates.x+"y-"+(this.coordinates.y-3)};
+            shapeCoordinates.blockX2Y1= function() {return "#x-"+(this.coordinates.x)+"y-"+(this.coordinates.y-2)};
+            shapeCoordinates.blockX1Y2= function() {return "#x-"+this.coordinates.x+"y-"+(this.coordinates.y-1)};
+            shapeCoordinates.blockX2Y2= function() {return "#x-"+(this.coordinates.x)+"y-"+(this.coordinates.y)};
+
+        },
+        function() {//An 'L' tetris piece is made here
+            
+            let shapeCoordinates = this.coordinates.shape;
+            this.coordinates.y = 3;//initial starting Y
+            this.coordinates.x = 4;//initial starting X
+            shapeCoordinates.blockX1Y1= function() {return "#x-"+this.coordinates.x+"y-"+(this.coordinates.y-2)};
+            shapeCoordinates.blockX2Y1= function() {return "#x-"+(this.coordinates.x)+"y-"+(this.coordinates.y-1)};
+            shapeCoordinates.blockX1Y2= function() {return "#x-"+((this.coordinates.x)+1)+"y-"+(this.coordinates.y)};
+            shapeCoordinates.blockX2Y2= function() {return "#x-"+(this.coordinates.x)+"y-"+(this.coordinates.y)};
+
+        },
+        function() {//An 'S' tetris piece is made here
+            
+            let shapeCoordinates = this.coordinates.shape;
+            this.coordinates.y = 2;//initial starting Y
+            this.coordinates.x = 3;//initial starting X
+            shapeCoordinates.blockX1Y1= function() {return "#x-"+((this.coordinates.x)+2)+"y-"+(this.coordinates.y-1)};
+            shapeCoordinates.blockX2Y1= function() {return "#x-"+((this.coordinates.x)+1)+"y-"+(this.coordinates.y-1)};
+            shapeCoordinates.blockX1Y2= function() {return "#x-"+((this.coordinates.x)+1)+"y-"+(this.coordinates.y)};
+            shapeCoordinates.blockX2Y2= function() {return "#x-"+(this.coordinates.x)+"y-"+(this.coordinates.y)};
+
+        },
+        function() {//A 'Z' tetris piece is made here
+            
+            let shapeCoordinates = this.coordinates.shape;
+            this.coordinates.y = 2;//initial starting Y
+            this.coordinates.x = 3;//initial starting X
+            shapeCoordinates.blockX1Y1= function() {return "#x-"+(this.coordinates.x-1)+"y-"+(this.coordinates.y-1)};
+            shapeCoordinates.blockX2Y1= function() {return "#x-"+this.coordinates.x+"y-"+(this.coordinates.y-1)};
+            shapeCoordinates.blockX1Y2= function() {return "#x-"+(this.coordinates.x+1)+"y-"+this.coordinates.y};
+            shapeCoordinates.blockX2Y2= function() {return "#x-"+this.coordinates.x+"y-"+this.coordinates.y};
 
         }
     ],
@@ -58,11 +91,11 @@ var tetrisBlock = {  //global variable I want this to be available in every part
 
         
         
-        this.arrayOfShapes[0/*Math.floor(Math.random()*6)*/].call(this); //I have to use the call method here because the function
+        this.arrayOfShapes[2].call(this); //I have to use the call method here because the function
                                                                                 //is being invoked as standalone function (i.e, not attached to tetrisBlock)
         //DRAW ALL SQUARES, initial starting point.
         
-    
+        
         intervalID = setInterval(()=> this.moveDown.call(this),100);
         //call is used here again because of the context in which moveDown is called
         //After drawning, periodically move the shape down.                 
@@ -72,8 +105,7 @@ var tetrisBlock = {  //global variable I want this to be available in every part
             console.log("stopandgenerate");
             for(const object in this.coordinates.shape){ //change the fill value in the coordinates where the tetris piece is currently 
                 let someString = this.coordinates.shape[object].call(tetrisBlock, e);
-                
-                gridOfFilledSquares[(Number(someString.slice(3,4))+(Number(someString.slice(6))*10))-10][3] = 1;           
+                console.log(gridOfFilledSquares[(Number(someString.slice(3,4))+(Number(someString.slice(6))*10))-10]);           
             }
             clearInterval(intervalID);
             this.generateRandomBlock();
@@ -82,8 +114,8 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         
         var newXY = checkGrid.call(tetrisBlock, this.moveDown, e);
         newXY.sort((a,b)=>{return a[0]-b[0] || b[1]-a[1]});
-        
         for(const object in this.coordinates.shape){//ERASES all the squares
+            console.log(this.coordinates.shape[object].call(tetrisBlock));
             grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: red; border: 1px solid white;";
         }
 
@@ -93,7 +125,7 @@ var tetrisBlock = {  //global variable I want this to be available in every part
             for(const object in this.coordinates.shape){//Draws the squares one block down
                 let someString = this.coordinates.shape[object].call(tetrisBlock);
                 grid.querySelector(someString).style="background-color: yellow; border: 1px solid grey;";
-                gridOfFilledSquares[gridOfFilledSquares.findIndex((element)=>{return element[2] === someString.slice(1)})][3] = 1;
+                gridOfFilledSquares[gridOfFilledSquares.findIndex((element)=>{return element[2] === someString.slice(1)})][3] = Number(1);
             }
             stopAndGenerate.call(this);
             
@@ -101,6 +133,7 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         else{//MOVES THE SHAPE COORDINATES DOWN
             this.coordinates.x=((newXY[0][0])-1);
             this.coordinates.y=(newXY[0][1]);
+            console.log(newXY[0][0]);
             for(const object in this.coordinates.shape){//Draws the squares one block down
                 grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: yellow; border: 1px solid grey;";
             }
@@ -109,6 +142,7 @@ var tetrisBlock = {  //global variable I want this to be available in every part
         
     },
     moveHorizontal: function(e) {
+        console.log("hello");
         console.log(e.target.id.slice(2,3));
         for(const object in this.coordinates.shape){
             grid.querySelector(this.coordinates.shape[object].call(tetrisBlock)).style="background-color: red; border: 1px solid white;";
@@ -255,7 +289,8 @@ function potentialPlace(){
     //this function will run with moveHorizontal but instead of     
 }
 function checkGrid(callingFunction, e){ //this function will check whether the block can be placed (bringDown()) or can 
-//                           move down one square (movedDown()). the parameter passed (boolean) true= bringdown(), false =movedown().
+//                         move down one square (movedDown()). the parameter passed (boolean) true= bringdown(), false =movedown().
+ 
     var arrayOfCoordinates = [];
     var xy= [];
     var x;
@@ -266,6 +301,7 @@ function checkGrid(callingFunction, e){ //this function will check whether the b
     for(const object in this.coordinates.shape){
         arrayOfCoordinates.push(this.coordinates.shape[object].call(this));
     }
+    console.log(arrayOfCoordinates);
     
     for(const object of arrayOfCoordinates){
         x = Number(object.slice(3,4));
@@ -286,6 +322,7 @@ function checkGrid(callingFunction, e){ //this function will check whether the b
     if(callingFunction === this.bringDownShape){
         let filledSquare =[];
         let drawingSquares= [];
+
         for(const obj of xy){
             filledSquare.push(gridOfFilledSquares.filter((arr)=>{
                 return arr[0] === (obj[0]+1); //checking to see if the square is on the same x value
@@ -334,44 +371,60 @@ function checkGrid(callingFunction, e){ //this function will check whether the b
         let width = xy.at(-1)[0]-shapeX;
         let cursorX = Number(e.target.id.slice(2,3));
         let difference = shapeX - cursorX;
+        
         if(difference > 0){
-            for(const obj of xy){
-                
-                let a = gridOfFilledSquares[(((obj[0]-1)+(obj[1])*10))-10];
-                if(a[3] === 1){
-                    for(const obj2 of xy){
-                        drawingSquares.push(gridOfFilledSquares[(((obj2[0])+(obj2[1])*10))-10]);
-                    }
-                    
-                    return drawingSquares;
-                }
-                else{
-                    drawingSquares.push(gridOfFilledSquares[((cursorX+(obj[0]-xy[0][0]))+((obj[1])*10))-10]);
-                }
-            }
             
+            for(const obj of xy){
+                for(let i = (obj[0]-1); i >= cursorX; i--){
+                     //take the square of the tetris shape and compare every square in front of it horizontally in the cursor direction
+                    if(gridOfFilledSquares[((i)+(obj[1]*10))-10][3] === 1){//if one of the squares is a filled-in square 
+                        for(const obj2 of xy){                             //then return the shape right next to the filled-in square
+                            console.log("moses");
+                            drawingSquares.push(gridOfFilledSquares[((((i+1)+(obj2[0]-xy[0][0]))+(obj2[1])*10))-10]);
+                        }
+                        return drawingSquares;
+                    }                   
+                }                
+            }           
+            console.log("this is running");
+            for(const obj3 of xy){//if the program makes it here, it's safe to draw directly to cursor
+                drawingSquares.push(gridOfFilledSquares[((cursorX+(obj3[0]-xy[0][0]))+((obj3[1])*10))-10]);
+            }
+
             return drawingSquares;
         }
         else if(difference < ((width)*(-1))){
-            console.log(-1*width);
             for(const obj of xy){
-                let a = gridOfFilledSquares[(((obj[0]+1)+(obj[1])*10))-10];//check each square
+                for(let i = (obj[0]+1); i <= cursorX; i++){
+                     //take the square of the tetris shape and compare every square in front of it horizontally in the cursor direction
+                    if(gridOfFilledSquares[((i)+(obj[1]*10))-10][3] === 1){//if one of the squares is a filled-in square 
+                        for(const obj2 of xy){                             //then return the shape right next to the filled-in square
+                            console.log("moses");
+                            drawingSquares.push(gridOfFilledSquares[((((i-1)-(obj2[0]-xy[0][0]))+(obj2[1])*10))-10]);
+                        }
+                        return drawingSquares;
+                    }                   
+                }                
+            }           
+            console.log("this is running");
+            for(const obj3 of xy){//if the program makes it here, it's safe to draw directly to cursor
+                drawingSquares.push(gridOfFilledSquares[((cursorX-(obj3[0]-xy[0][0]))+((obj3[1])*10))-10]);
+            }
+
+            return drawingSquares;
+        }
+        else{
+            for(const obj of xy){
+                let a = gridOfFilledSquares[(((obj[0]-1)+(obj[1])*10))-10];//check each square
                 if(a[3] === 1){
                     for(const obj2 of xy){
                         drawingSquares.push(gridOfFilledSquares[(((obj2[0])+(obj2[1])*10))-10]);//return the exact same block you started with
                     }
                     return drawingSquares;
                 }
-                else{
+                else{//this is a problem area
                     drawingSquares.push(gridOfFilledSquares[((cursorX+(xy[0][0]-obj[0]))+((obj[1])*10))-10]);
                 }
-            }
-            return drawingSquares;
-        }
-        else{
-            console.log("it's running");
-            for(const obj of xy){
-                drawingSquares.push(gridOfFilledSquares[(((obj[0])+(obj[1])*10))-10]);//return the exact same block you started with
             }
             return drawingSquares;
         }
