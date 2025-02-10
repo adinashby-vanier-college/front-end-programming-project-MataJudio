@@ -302,15 +302,32 @@
 
 
         function nextSlide() {
-            const carouselInner = document.querySelector('.carousel-inner');
-            let nextImage;
-            const liveListImages = carouselInner.children;
-            const totalSlides = liveListImages.length;
+            var carouselInner = document.querySelector('.carousel-inner');
+            var nextImage;
+            var liveListImages = carouselInner.children;
+            var totalSlides = liveListImages.length;
             console.log(totalSlides);
             for(const images of liveListImages){
+                images.style.transition = 'transform 0.6s ease-in-out';
                 images.style.transform = 'translateX(100%)'; 
             }
+
+            for(const images of liveListImages){
+                console.log(images.style);
+            }
+            setTimeout(()=>{
+                for(const images of liveListImages){
+                    images.style ='';
+                }  
+                for(const images of carouselInner.children){
+                    console.log(carouselInner.innerHTML);
+                }
+                console.log("\nRan after 0.65 seconds");
+            }, 650);
+
             
+
+
         }
 
         function prevSlide() {
